@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using EMS.Infrastructure.Contexts;
 using EMS.Infrastructure.Identity;
+using EMS.Infrastructure.Services;
+using EMS.Application.Interfaces;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly)); 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -18,6 +21,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IEventReadService, EventReadService>();
 
 var app = builder.Build();
 
