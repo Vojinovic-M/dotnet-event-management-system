@@ -11,9 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Dtos\" />
     <Folder Include="Features\Users\Commands\" />
-    <Folder Include="Features\Users\Dtos\" />
     <Folder Include="Features\Users\Queries\" />
   </ItemGroup>
 
