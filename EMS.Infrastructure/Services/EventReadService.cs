@@ -18,7 +18,7 @@ public class EventReadService : IEventReadService
         return await _context.Events
             .Select(e => new EventDto
             {
-                Id = e.Id,
+                EventId = e.EventId,
                 Name = e.Name,
                 Date = e.Date,
                 Location = e.Location,

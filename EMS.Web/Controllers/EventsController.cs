@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EMS.Web.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/events")]
 public class EventsController(IMediator mediator, IEventReadService eventReadService) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
