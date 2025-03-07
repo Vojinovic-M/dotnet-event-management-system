@@ -1,18 +1,23 @@
-﻿namespace EMS.Domain.Entities;
+﻿using System.ComponentModel.DataAnnotations;
 
-public class Event
+namespace EMS.Domain.Entities
 {
-    public int Id { get; set; }
-    public required string Name { get; set; }
-    public DateTime Date { get; set; }
-    public required string Location { get; set; }
-    public enum Category
+    public enum EventCategory
     {
         Conference,
         Seminar,
         Meeting,
         Workshop
     }
-    public required string Description { get; set; }
-    public required string ImageUrl { get; set; }
+
+    public class Event
+    {
+        public int EventId { get; set; }
+        public string? Name { get; set; }
+        public DateTime Date { get; set; }
+        public string? Location { get; set; }
+        public EventCategory Category { get; set; }
+        public  string? Description { get; set; }
+        public string? ImageUrl { get; set; }
+    }
 }

@@ -1,7 +1,4 @@
-﻿namespace EMS.Application
+﻿namespace EMS.Application;
+public static class AssemblyReference
 {
-    public class Class1
-    {
-
-    }
 }

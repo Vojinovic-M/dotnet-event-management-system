@@ -2,7 +2,7 @@
 
 public class EventDto
 {
-    public int Id { get; set; }
+    public int EventId { get; set; }
     public required string Name { get; set; }
     public DateTime Date { get; set; }
     public required string Location { get; set; }
