@@ -4,13 +4,9 @@ using MediatR;
 
 namespace EMS.Application.Features.Events.Queries.GetAllEvents;
 
-class GetAllEventsHandler : IRequestHandler<GetAllEventsQuery, List<EventDto>>
+class GetAllEventsHandler(IEventReadService eventReadService) : IRequestHandler<GetAllEventsQuery, List<EventDto>>
 {
-    private readonly IEventReadService _eventReadService;
-    public GetAllEventsHandler(IEventReadService eventReadService)
-    {
-        _eventReadService = eventReadService;
-    }
+    private readonly IEventReadService _eventReadService = eventReadService;
 
     public async Task<List<EventDto>> Handle(GetAllEventsQuery request, CancellationToken cancellationToken)
     {

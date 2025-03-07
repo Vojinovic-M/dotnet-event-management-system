@@ -14,9 +14,17 @@ public class EventsController(IMediator mediator, IEventReadService eventReadSer
 
     [HttpGet]
     public async Task<IActionResult> GetAllEvents(CancellationToken cancellationToken)
+        => Ok(await _mediator.Send(new GetAllEventsQuery(), cancellationToken));
+
+    [HttpGet("{eventId}")]
+    public async Task<IActionResult> GetEventById(int eventId, CancellationToken cancellationToken)
     {
-        var events = await _mediator.Send(new GetAllEventsQuery(), cancellationToken);
-        return Ok(events);
+        var eventDto = await _eventReadService.GetEventByIdAsync(eventId, cancellationToken);
+
+        if (eventDto == null)
+            return NotFound();
+
+        return Ok(eventDto);
     }
 
 }

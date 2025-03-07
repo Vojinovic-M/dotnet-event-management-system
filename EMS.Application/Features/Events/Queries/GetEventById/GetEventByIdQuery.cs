@@ -1,5 +1,9 @@
-﻿namespace EMS.Application.Features.Events.Queries.GetEventById;
+﻿using MediatR;
+using EMS.Application.Dtos;
 
-class GetEventByIdQuery
+namespace EMS.Application.Features.Events.Queries.GetEventById;
+
+class GetEventByIdQuery(int eventId) : IRequest<EventDto>
 {
+    public int EventId { get; set; } = eventId;
 }
