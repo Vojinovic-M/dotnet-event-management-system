@@ -1,20 +1,24 @@
 ﻿using EMS.Application.Interfaces;
-using EMS.Application.Features.Events.Queries.GetAllEvents;
-using MediatR;
 using Microsoft.AspNetCore.Mvc;
 namespace EMS.Web.Controllers;
 
 [ApiController]
 [Route("api/events")]
-public class EventsController(IMediator mediator, IEventReadService eventReadService) : ControllerBase
+public class EventsController(IEventReadService eventReadService) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
     private readonly IEventReadService _eventReadService = eventReadService;
 
 
     [HttpGet]
     public async Task<IActionResult> GetAllEvents(CancellationToken cancellationToken)
-        => Ok(await _mediator.Send(new GetAllEventsQuery(), cancellationToken));
+    {
+        var eventDtos = await _eventReadService.GetAllEventsAsync(cancellationToken);
+
+        if (eventDtos == null)
+            return NotFound();
+
+        return Ok(eventDtos);
+    }
 
     [HttpGet("{eventId}")]
     public async Task<IActionResult> GetEventById(int eventId, CancellationToken cancellationToken)

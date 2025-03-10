@@ -3,13 +3,9 @@ using EMS.Infrastructure.Contexts;
 using EMS.Infrastructure.Identity;
 using EMS.Infrastructure.Services;
 using EMS.Application.Interfaces;
-using MediatR;
-using System.Reflection;
-using EMS.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(AssemblyReference))!)); 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

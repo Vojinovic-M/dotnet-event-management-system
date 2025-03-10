@@ -7,7 +7,7 @@ namespace EMS.Infrastructure.Services;
 
 public class EventReadService(ApplicationDbContext context) : IEventReadService
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
 
     public async Task<List<EventDto>> GetAllEventsAsync(CancellationToken cancellationToken)
     {
@@ -24,9 +24,9 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<EventDto> GetEventByIdAsync(int eventId, CancellationToken cancellationToken)
+    public async Task<EventDto?> GetEventByIdAsync(int eventId, CancellationToken cancellationToken)
     {
-        var eventEntity = await _context.Events
+        return await _context.Events
             .Select(e => new EventDto
             {
                 EventId = e.EventId,
@@ -36,8 +36,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Description = e.Description,
                 ImageUrl = e.ImageUrl,
                 Category = e.Category.ToString()
-            }).FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
-
-        return eventEntity;
+            })
+            .FirstOrDefaultAsync(cancellationToken);
     }
 }
