@@ -9,10 +9,11 @@ namespace EMS.Domain.Entities
         [Key]
         public int EventId { get; set; }
         public string? Name { get; set; }
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
+        public TimeOnly Time { get; set; }
         public string? Location { get; set; }
         public EventCategory Category { get; set; }
         public  string? Description { get; set; }
-        public string? ImageUrl { get; set; }
+        public string? Image { get; set; }
     }
 }

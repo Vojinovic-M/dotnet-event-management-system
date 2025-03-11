@@ -19,7 +19,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Date = e.Date,
                 Location = e.Location,
                 Description = e.Description,
-                ImageUrl = e.ImageUrl
+                Image = e.Image
             })
             .ToListAsync(cancellationToken);
     }
@@ -34,7 +34,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Date = e.Date,
                 Location = e.Location,
                 Description = e.Description,
-                ImageUrl = e.ImageUrl,
+                Image = e.Image,
                 Category = e.Category.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);

@@ -40,7 +40,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         new MySqlServerVersion(new Version(8, 0, 21)),
         b => b.MigrationsAssembly("EMS.Web")));
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => 
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 

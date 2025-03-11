@@ -12,18 +12,22 @@ public class MappingProfile : Profile
         CreateMap<Event, EventDto>()
             .ForMember(dest => dest.Category,
                 opt => opt.MapFrom(src => src.Category.ToString()))
-            .ReverseMap() // od EventDto na Event
-            .ForMember(dest => dest.Category,
-                opt => opt.MapFrom(src => ParseCategory(src.Category)));
+            .ForMember(dest => dest.Time,
+                opt => opt.MapFrom(src => src.Time.ToString("HH:mm:ss")))
 
-        RecognizeDestinationPrefixes("Dto"); // Matches properties like "DtoProperty"
-        SourceMemberNamingConvention = LowerUnderscoreNamingConvention.Instance;
-        DestinationMemberNamingConvention = PascalCaseNamingConvention.Instance;
+            .ReverseMap() // od EventDto na Event
+
+            .ForMember(dest => dest.Category,
+                opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")))
+            .ForMember(dest => dest.Time,
+                opt => opt.MapFrom(src => TimeOnly.Parse(src.Time)));
+
     }
 
     private static EventCategory ParseCategory(string category)
     {
-        if (string.IsNullOrWhiteSpace(category)) throw new AutoMapperMappingException("Category cannot be empty");
+        if (string.IsNullOrWhiteSpace(category)) 
+            throw new AutoMapperMappingException("Category cannot be empty");
 
         if (Enum.TryParse<EventCategory>(category, ignoreCase: true, out var parseCategory))
         {
