@@ -2,7 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using EMS.Infrastructure.Contexts;
 using EMS.Infrastructure.Identity;
 using EMS.Infrastructure.Services;
+using EMS.Infrastructure.Mappings;
 using EMS.Application.Interfaces;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +45,7 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddScoped<IEventReadService, EventReadService>();
-
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddControllers();
 
 var app = builder.Build();

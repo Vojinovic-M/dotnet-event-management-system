@@ -1,17 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using EMS.Domain.Enums;
 
 namespace EMS.Domain.Entities
 {
-    public enum EventCategory
-    {
-        Conference,
-        Seminar,
-        Meeting,
-        Workshop
-    }
 
     public class Event
     {
+        [Key]
         public int EventId { get; set; }
         public string? Name { get; set; }
         public DateTime Date { get; set; }

@@ -10,9 +10,11 @@ namespace EMS.Web.Controllers;
 public class UserController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    public UserController(UserManager<ApplicationUser> userManager)
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    public UserController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     [HttpGet("profile")]
@@ -24,6 +26,13 @@ public class UserController : ControllerBase
         if (user == null)  {  return  NotFound( new { message = "User not found" });  }
 
         return Ok(new { email = user.Email });
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return Ok();
     }
 
 }
