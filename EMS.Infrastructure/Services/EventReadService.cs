@@ -37,6 +37,6 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Image = e.Image,
                 Category = e.Category.ToString()
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
     }
 }

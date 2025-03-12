@@ -16,7 +16,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        var a = new Event() { Image = null};
+        var a = new Event() { Image = null };
         modelBuilder.Entity<Event>(entity =>
         {
             entity.HasKey(e => e.EventId);
@@ -36,9 +36,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Category)
                 .HasConversion<string>();
         });
-
-        modelBuilder.Entity<Event>()
-            .Property(e => e.Time)
-            .HasColumnType("time");
     }
 }

@@ -25,8 +25,7 @@ public class EventsController(IEventReadService eventReadService) : ControllerBa
     {
         var eventDto = await _eventReadService.GetEventByIdAsync(eventId, cancellationToken);
 
-        if (eventDto == null)
-            return NotFound();
+        if (eventDto == null)  return NotFound();
 
         return Ok(eventDto);
     }

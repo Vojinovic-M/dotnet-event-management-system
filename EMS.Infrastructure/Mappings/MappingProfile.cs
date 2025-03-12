@@ -12,15 +12,11 @@ public class MappingProfile : Profile
         CreateMap<Event, EventDto>()
             .ForMember(dest => dest.Category,
                 opt => opt.MapFrom(src => src.Category.ToString()))
-            .ForMember(dest => dest.Time,
-                opt => opt.MapFrom(src => src.Time.ToString("HH:mm:ss")))
 
             .ReverseMap() // od EventDto na Event
 
             .ForMember(dest => dest.Category,
-                opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")))
-            .ForMember(dest => dest.Time,
-                opt => opt.MapFrom(src => TimeOnly.Parse(src.Time)));
+                opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")));
 
     }
 
