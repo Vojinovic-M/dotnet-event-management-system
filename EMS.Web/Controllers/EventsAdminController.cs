@@ -1,12 +1,14 @@
 ﻿using AutoMapper;
 using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EMS.Web.Controllers;
 
 [ApiController]
 [Route("api/admin")]
+[Authorize(Roles= "Admin")]
 public class EventsAdminController(
     IEventWriteService eventWriteService, ILogger<EventsAdminController> logger) : ControllerBase
 {

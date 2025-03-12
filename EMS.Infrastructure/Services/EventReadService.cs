@@ -19,7 +19,8 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Date = e.Date,
                 Location = e.Location,
                 Description = e.Description,
-                Image = e.Image
+                Image = e.Image,
+                Category = e.Category.ToString()
             })
             .ToListAsync(cancellationToken);
     }
