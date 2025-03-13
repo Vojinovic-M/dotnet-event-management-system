@@ -40,14 +40,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         new MySqlServerVersion(new Version(8, 0, 21)),
         b => b.MigrationsAssembly("EMS.Web")));
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
-});
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddScoped<IEventReadService, EventReadService>();
 builder.Services.AddScoped<IEventWriteService, EventWriteService>();
@@ -91,14 +87,11 @@ static async Task EnsureRolesAndAdmin(IServiceProvider serviceProvider)
     }
 }
 
-
-
-
-
 var app = builder.Build();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.MapIdentityApi<ApplicationUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -107,14 +100,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    await EnsureRolesAndAdmin(services);
-}
-
 app.UseHttpsRedirection();
 app.UseCors("AllowReact");
+app.UseAuthentication();
+
+
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");

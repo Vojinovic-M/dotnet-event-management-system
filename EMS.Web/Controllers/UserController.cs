@@ -22,10 +22,14 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUserProfile()
     {
         var user = await _userManager.GetUserAsync(User);
-        
         if (user == null)  {  return  NotFound( new { message = "User not found" });  }
+        
+        var roles = await _userManager.GetRolesAsync(user);
 
-        return Ok(new { email = user.Email });
+        return Ok(new { 
+            email = user.Email,
+            roles = roles
+        });
     }
 
     [HttpPost("logout")]
