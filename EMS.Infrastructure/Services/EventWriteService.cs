@@ -14,7 +14,7 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper) : I
     private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
 
-    public async Task<EventDto?> CreateEventAsync(EventDto eventDto, CancellationToken cancellationToken)
+    public async Task<EventDto> CreateEventAsync(EventDto eventDto, CancellationToken cancellationToken)
     {
         var newEvent = _mapper.Map<Event>(eventDto);
 

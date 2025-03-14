@@ -5,6 +5,7 @@ using EMS.Infrastructure.Services;
 using EMS.Infrastructure.Mappings;
 using EMS.Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using EMS.Infrastructure.Seeders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,43 +52,13 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddControllers();
 
 
-
-
-
-static async Task EnsureRolesAndAdmin(IServiceProvider serviceProvider)
-{
-    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
-    string[] roleNames = { "Admin", "User"};
-
-    foreach (var roleName in roleNames)
-    {
-        var roleExist = await roleManager.RoleExistsAsync(roleName);
-        if (!roleExist)
-        {
-            await roleManager.CreateAsync(new IdentityRole(roleName));
-        }
-    }
-
-    string adminEmail = "admin@admin.com";
-    string adminPassword = "Admin1!";
-
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
-    {
-        adminUser = new ApplicationUser { UserName = adminEmail, Email = adminEmail };
-        var result = await userManager.CreateAsync(adminUser, adminPassword);
-
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-            Console.WriteLine("Admin was created successfully!");
-        }
-    }
-}
-
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await AdminSeeder.EnsureRolesAndAdmin(services);
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -103,8 +74,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowReact");
 app.UseAuthentication();
-
-
 app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
