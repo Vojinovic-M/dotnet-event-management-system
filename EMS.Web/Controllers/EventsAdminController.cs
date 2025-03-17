@@ -30,5 +30,39 @@ public class EventsAdminController(
         }
     }
 
+    [HttpPost("modify")]
+    public async Task<IActionResult> ModifyEvent([FromBody] EventDto eventDto, int EventId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            var modifiedEvent = await eventWriteService.ModifyEventAsync(eventDto, EventId, cancellationToken);
+            if (modifiedEvent == null) return NotFound();
+
+            return Ok(modifiedEvent);
+        }
+        catch (AutoMapperMappingException ex)
+        {
+            logger.LogError(ex, "Invalid category value");
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("delete/{id}")]
+    public async Task<IActionResult> DeleteEvent(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var deletedEvent = await eventWriteService.DeleteEventAsync(id, cancellationToken);
+            if (deletedEvent == null) return NotFound();
+
+            return Ok(deletedEvent);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error deleting event");
+            return StatusCode(500, "Internal Server error");
+        }
+    }
 }
