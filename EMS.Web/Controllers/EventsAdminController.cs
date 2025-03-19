@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
+using EMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,17 +31,21 @@ public class EventsAdminController(
         }
     }
 
-    [HttpPost("modify")]
-    public async Task<IActionResult> ModifyEvent([FromBody] EventDto eventDto, int EventId, CancellationToken cancellationToken)
+    [HttpPut("modify/{eventId}")]
+    public async Task<IActionResult> ModifyEvent(
+        [FromBody] EventCrudDto eventCrudDto,
+        [FromRoute] int eventId,
+        [FromServices] IMapper mapper,
+        CancellationToken cancellationToken)
     {
         try
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var modifiedEvent = await eventWriteService.ModifyEventAsync(eventDto, EventId, cancellationToken);
+            var modifiedEvent = await eventWriteService.ModifyEventAsync(eventCrudDto, eventId, cancellationToken);
             if (modifiedEvent == null) return NotFound();
 
-            return Ok(modifiedEvent);
+            return Ok(mapper.Map<EventDto>(modifiedEvent));
         }
         catch (AutoMapperMappingException ex)
         {

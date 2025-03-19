@@ -17,7 +17,14 @@ public class MappingProfile : Profile
 
             .ForMember(dest => dest.Category,
                 opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")));
-
+        
+        
+        CreateMap<Event, EventCrudDto>()
+            .ForMember(dest => dest.Category,
+                opt => opt.MapFrom(src => src.Category.ToString()))
+            .ReverseMap()
+            .ForMember(dest => dest.Category,
+                opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")));
     }
 
     private static EventCategory ParseCategory(string category)

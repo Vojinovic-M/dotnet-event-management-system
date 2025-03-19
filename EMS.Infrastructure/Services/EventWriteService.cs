@@ -25,17 +25,17 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper) : I
     }
 
 
-    public async Task<EventDto?> ModifyEventAsync(EventDto eventDto, int EventId, CancellationToken cancellationToken)
+    public async Task<Event?> ModifyEventAsync(EventCrudDto eventCrudDto, int EventId, CancellationToken cancellationToken)
     {
         var existingEvent = await _context.Events
             .FirstOrDefaultAsync(e => e.EventId == EventId, cancellationToken);
 
         if (existingEvent == null) { return null; }
 
-        _mapper.Map(eventDto, existingEvent);
+        _mapper.Map(eventCrudDto, existingEvent);
 
         await _context.SaveChangesAsync(cancellationToken);
-        return _mapper.Map<EventDto>(existingEvent);
+        return existingEvent;
     }
 
 
