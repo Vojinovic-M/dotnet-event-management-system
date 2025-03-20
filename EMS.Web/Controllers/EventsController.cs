@@ -1,4 +1,5 @@
-﻿using EMS.Application.Interfaces;
+﻿using EMS.Application.Dtos;
+using EMS.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 namespace EMS.Web.Controllers;
 
@@ -8,17 +9,13 @@ public class EventsController(IEventReadService eventReadService) : ControllerBa
 {
     private readonly IEventReadService _eventReadService = eventReadService;
 
-
     [HttpGet]
-    public async Task<IActionResult> GetAllEvents(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetEvents([FromQuery] EventPaginationRequest request, CancellationToken cancellationToken)
     {
-        var eventDtos = await _eventReadService.GetAllEventsAsync(cancellationToken);
-
-        if (eventDtos == null)
-            return NotFound();
-
-        return Ok(eventDtos);
+        var paginatedEvents = await _eventReadService.GetEventsAsync(request, cancellationToken);
+        return Ok(paginatedEvents);
     }
+
 
     [HttpGet("{eventId}")]
     public async Task<IActionResult> GetEventById(int eventId, CancellationToken cancellationToken)
