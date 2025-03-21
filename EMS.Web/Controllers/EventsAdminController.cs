@@ -14,14 +14,15 @@ public class EventsAdminController(
     IEventWriteService eventWriteService, ILogger<EventsAdminController> logger) : ControllerBase
 {
     [HttpPost("create")]
-    public async Task<IActionResult> CreateEvent([FromBody] EventDto eventDto, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateEvent(
+        [FromBody] EventCrudDto eventCrudDto,
+        CancellationToken cancellationToken)
     {
         try
         {
             if (!ModelState.IsValid)  return BadRequest(ModelState);
             
-            var createdEvent = await eventWriteService.CreateEventAsync(eventDto, cancellationToken);
-
+            var createdEvent = await eventWriteService.CreateEventAsync(eventCrudDto, cancellationToken);
             return Created($"/api/events/{createdEvent.EventId}", createdEvent );
 
         } catch (AutoMapperMappingException ex)
@@ -45,7 +46,7 @@ public class EventsAdminController(
             var modifiedEvent = await eventWriteService.ModifyEventAsync(eventCrudDto, eventId, cancellationToken);
             if (modifiedEvent == null) return NotFound();
 
-            return Ok(mapper.Map<EventDto>(modifiedEvent));
+            return Ok(modifiedEvent);
         }
         catch (AutoMapperMappingException ex)
         {
@@ -55,7 +56,9 @@ public class EventsAdminController(
     }
 
     [HttpDelete("delete/{id}")]
-    public async Task<IActionResult> DeleteEvent(int id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteEvent(
+        int id, 
+        CancellationToken cancellationToken)
     {
         try
         {

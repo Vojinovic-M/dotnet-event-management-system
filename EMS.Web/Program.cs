@@ -49,6 +49,7 @@ builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
 builder.Services.AddScoped<IEventReadService, EventReadService>();
 builder.Services.AddScoped<IEventWriteService, EventWriteService>();
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
 
