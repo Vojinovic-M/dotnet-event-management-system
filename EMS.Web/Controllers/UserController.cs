@@ -27,6 +27,7 @@ public class UserController : ControllerBase
         var roles = await _userManager.GetRolesAsync(user);
 
         return Ok(new { 
+            id = user.Id,
             email = user.Email,
             roles = roles
         });
