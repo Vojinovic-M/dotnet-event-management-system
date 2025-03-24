@@ -18,7 +18,9 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
     public async Task<EventDto?> CreateEventAsync(EventCrudDto eventCrudDto, CancellationToken cancellationToken)
     {
-        var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var user = _httpContextAccessor.HttpContext.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        
         var newEvent = _mapper.Map<Event>(eventCrudDto);
         newEvent.UserId = userId;
 
@@ -31,10 +33,14 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
     public async Task<EventDto?> ModifyEventAsync(EventCrudDto eventCrudDto, int EventId, CancellationToken cancellationToken)
     {
-        var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
-        var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == EventId, cancellationToken);
+        var user = _httpContextAccessor.HttpContext.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
+        var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == EventId, cancellationToken);
         if (existingEvent == null) { return null; }
+
+        var isAdmin = user.IsInRole("Admin");
+        if (existingEvent.UserId != userId && !isAdmin) {  return null;  }
 
         _mapper.Map(eventCrudDto, existingEvent);
         await _context.SaveChangesAsync(cancellationToken);
@@ -46,10 +52,15 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
     public async Task<EventDto?> DeleteEventAsync(int EventId, CancellationToken cancellationToken)
     {
-        var userId = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var user = _httpContextAccessor.HttpContext.User;
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null) {  return null;  }
+        
         var eventDelete = await _context.Events.FirstOrDefaultAsync(e => e.EventId == EventId, cancellationToken);
+        if (eventDelete == null) {  return null;  }
 
-        if (eventDelete == null) { return null; }
+        var isAdmin = user.IsInRole("Admin");
+        if (eventDelete.UserId != userId && !isAdmin) { return null; }
 
         _context.Events.Remove(eventDelete);
         await _context.SaveChangesAsync(cancellationToken);

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
-using EMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +8,7 @@ namespace EMS.Web.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles= "Admin")]
+[Authorize]
 public class EventsAdminController(
     IEventWriteService eventWriteService, ILogger<EventsAdminController> logger) : ControllerBase
 {
@@ -32,11 +31,11 @@ public class EventsAdminController(
         }
     }
 
+
     [HttpPut("modify/{eventId}")]
     public async Task<IActionResult> ModifyEvent(
         [FromBody] EventCrudDto eventCrudDto,
         [FromRoute] int eventId,
-        [FromServices] IMapper mapper,
         CancellationToken cancellationToken)
     {
         try
@@ -54,6 +53,7 @@ public class EventsAdminController(
             return BadRequest(ex.Message);
         }
     }
+
 
     [HttpDelete("delete/{id}")]
     public async Task<IActionResult> DeleteEvent(

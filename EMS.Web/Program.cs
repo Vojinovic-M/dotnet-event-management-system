@@ -52,6 +52,23 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers();
 
+static async Task SeedDefaultUserRolesAsync(IServiceProvider serviceProvider)
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var users = userManager.Users.ToList();
+
+    foreach (var user in users)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+        if (!roles.Any())
+        {
+            await userManager.AddToRoleAsync(user, "User");
+        }
+    }
+}
+
+
+
 
 var app = builder.Build();
 
@@ -59,6 +76,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await AdminSeeder.EnsureRolesAndAdmin(services);
+    await SeedDefaultUserRolesAsync(services);
 }
 
 app.UseDefaultFiles();

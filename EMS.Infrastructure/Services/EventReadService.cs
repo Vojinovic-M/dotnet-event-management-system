@@ -65,6 +65,27 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         };
     }
 
+    public async Task<IEnumerable<EventDto>> GetUserEventsAsync(string userId, CancellationToken cancellationToken)
+    {
+        var userEvents = await _context.Events
+            .Where(e => e.UserId == userId)
+            .ToListAsync(cancellationToken);
+
+        return userEvents.Select(e => new EventDto
+        {
+            EventId = e.EventId,
+            Name = e.Name,
+            Date = e.Date,
+            Location = e.Location,
+            Description = e.Description,
+            Image = e.Image,
+            Category = e.Category.ToString(),
+            UserId = e.UserId
+        });
+    }
+
+
+
     public async Task<EventDto?> GetEventByIdAsync(int eventId, CancellationToken cancellationToken)
     {
         return await _context.Events

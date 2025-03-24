@@ -1,6 +1,8 @@
 ﻿using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 namespace EMS.Web.Controllers;
 
 [ApiController]
@@ -25,6 +27,19 @@ public class EventsController(IEventReadService eventReadService) : ControllerBa
         if (eventDto == null)  return NotFound();
 
         return Ok(eventDto);
+    }
+
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetUserEvents(string userId, CancellationToken cancellationToken)
+    {
+        var isUser = User.IsInRole("User");
+        var isAdmin = User.IsInRole("Admin");
+
+        if (!isAdmin && !isUser)    {  return Forbid();  }
+
+        var events = await _eventReadService.GetUserEventsAsync(userId, cancellationToken);
+        return Ok(events);
     }
 
 }
