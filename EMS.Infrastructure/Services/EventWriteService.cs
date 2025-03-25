@@ -2,6 +2,7 @@
 using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
 using EMS.Domain.Entities;
+using EMS.Domain.Enums;
 using EMS.Infrastructure.Contexts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +47,6 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
         await _context.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<EventDto>(existingEvent);
-        ;
     }
 
 
@@ -67,4 +67,26 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
         return _mapper.Map<EventDto>(eventDelete);
     }
+
+    
+
+    public async Task<SignUpResult> SignUpForEventAsync(int eventId, string userId, CancellationToken cancellationToken)
+    {
+        var eventEntity = await _context.Events
+            .FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
+
+        if (eventEntity == null) return SignUpResult.EventNotFound;
+
+        eventEntity.UsersInEvent ??= new List<string>();
+
+        if (eventEntity.UsersInEvent.Contains(userId)) return SignUpResult.AlreadySignedUp;
+
+        eventEntity.UsersInEvent.Add(userId);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return SignUpResult.Success;
+    }
+
+
+
 }

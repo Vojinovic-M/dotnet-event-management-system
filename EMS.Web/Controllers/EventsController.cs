@@ -1,15 +1,17 @@
 ﻿using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
+using EMS.Domain.Enums;
+using EMS.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 namespace EMS.Web.Controllers;
 
 [ApiController]
 [Route("api/events")]
-public class EventsController(IEventReadService eventReadService) : ControllerBase
+public class EventsController(IEventReadService eventReadService, IEventWriteService eventWriteService) : ControllerBase
 {
     private readonly IEventReadService _eventReadService = eventReadService;
+    private readonly IEventWriteService _eventWriteService = eventWriteService;
 
     [HttpGet]
     public async Task<IActionResult> GetEvents([FromQuery] EventPaginationRequest request, CancellationToken cancellationToken)
@@ -42,4 +44,22 @@ public class EventsController(IEventReadService eventReadService) : ControllerBa
         return Ok(events);
     }
 
+
+    [HttpPost("signup/{eventId}")]
+    [Authorize]
+    public async Task<IActionResult> SignUpForEvent(int eventId, [FromBody] string userId, CancellationToken cancellationToken)
+    {
+        var result = await _eventWriteService.SignUpForEventAsync(eventId, userId, cancellationToken);
+
+        return result switch
+        {
+            SignUpResult.Success => Ok(new { success = true, message = "User signed up successfully." }),
+
+            SignUpResult.EventNotFound => Ok(new { success = false, message = "The event does not exist." }),
+
+            SignUpResult.AlreadySignedUp => Ok(new { success = false, message = "User is already signed up for the event." }),
+
+            _ => StatusCode(500, new { success = false, message = "An unexpected error occurred." }) // fallback
+        };
+    }
 }
