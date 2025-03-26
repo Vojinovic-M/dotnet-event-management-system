@@ -62,4 +62,14 @@ public class EventsController(IEventReadService eventReadService, IEventWriteSer
             _ => StatusCode(500, new { success = false, message = "An unexpected error occurred." }) // fallback
         };
     }
+
+
+    [HttpGet("signedup/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetSignedUpEvents(string userId, CancellationToken cancellationToken)
+    {
+        var events = await _eventReadService.GetSignedUpEventsAsync(userId, cancellationToken);
+        
+        return Ok(events);
+    }
 }

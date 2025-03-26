@@ -77,7 +77,7 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
         if (eventEntity == null) return SignUpResult.EventNotFound;
 
-        eventEntity.UsersInEvent ??= new List<string>();
+        eventEntity.UsersInEvent ??= [];
 
         if (eventEntity.UsersInEvent.Contains(userId)) return SignUpResult.AlreadySignedUp;
 

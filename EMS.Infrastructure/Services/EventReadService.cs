@@ -3,12 +3,14 @@ using EMS.Application.Dtos;
 using EMS.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using EMS.Domain.Enums;
+using AutoMapper;
 
 namespace EMS.Infrastructure.Services;
 
-public class EventReadService(ApplicationDbContext context) : IEventReadService
+public class EventReadService(ApplicationDbContext context, IMapper mapper) : IEventReadService
 {
     private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
+    private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
 
 
     public async Task<PaginatedList<EventDto>> GetEventsAsync(EventPaginationRequest request, CancellationToken cancellationToken)
@@ -18,7 +20,6 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         if (request.EventDate.HasValue)
             query = query.Where(e => e.Date.Date == request.EventDate.Value.Date); // filter da bude vrednost kao u request
 
-        // filter za kategorije
         if (!string.IsNullOrEmpty(request.Category))
         {
             if (!Enum.TryParse<EventCategory>(request.Category, true, out var category))
@@ -27,7 +28,6 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             query = query.Where(e => e.Category == category); 
         }
 
-        // sortiranje
         query = request.SortBy.ToLower() switch
         {
             "name" => request.SortOrder == "asc"
@@ -65,6 +65,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         };
     }
 
+
     public async Task<IEnumerable<EventDto>> GetUserEventsAsync(string userId, CancellationToken cancellationToken)
     {
         var userEvents = await _context.Events
@@ -80,10 +81,10 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Description = e.Description,
             Image = e.Image,
             Category = e.Category.ToString(),
-            UserId = e.UserId
+            UserId = e.UserId,
+            UsersInEvent = e.UsersInEvent
         });
     }
-
 
 
     public async Task<EventDto?> GetEventByIdAsync(int eventId, CancellationToken cancellationToken)
@@ -101,4 +102,31 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             })
             .FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
     }
+
+
+    public async Task<IEnumerable<EventDto>> GetSignedUpEventsAsync(string userId, CancellationToken cancellationToken)
+    {
+
+        var events = await _context.Events
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        var signedUpEvents = events
+            .Where(e => e.UsersInEvent != null && e.UsersInEvent.Contains(userId))
+            .ToList();
+
+        return signedUpEvents.Select(e => new EventDto
+        {
+            EventId = e.EventId,
+            Name = e.Name,
+            Date = e.Date,
+            Location = e.Location,
+            Description = e.Description,
+            Image = e.Image,
+            Category = e.Category.ToString(),
+            UserId = e.UserId,
+            UsersInEvent = e.UsersInEvent
+        });
+    }
+
 }
