@@ -7,10 +7,9 @@ using AutoMapper;
 
 namespace EMS.Infrastructure.Services;
 
-public class EventReadService(ApplicationDbContext context, IMapper mapper) : IEventReadService
+public class EventReadService(ApplicationDbContext context) : IEventReadService
 {
-    private readonly ApplicationDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-    private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+    private readonly ApplicationDbContext _context = context;
 
 
     public async Task<PaginatedList<EventDto>> GetEventsAsync(EventPaginationRequest request, CancellationToken cancellationToken)
