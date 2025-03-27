@@ -80,8 +80,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Description = e.Description,
             Image = e.Image,
             Category = e.Category.ToString(),
-            UserId = e.UserId,
-            UsersInEvent = e.UsersInEvent
+            UserId = e.UserId
         });
     }
 
@@ -106,13 +105,10 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
     public async Task<IEnumerable<EventDto>> GetSignedUpEventsAsync(string userId, CancellationToken cancellationToken)
     {
 
-        var events = await _context.Events
-            .AsNoTracking()
+        var signedUpEvents = await _context.EventRegistrations
+            .Where(e => e.UserId == userId)
+            .Select(e => e.Event)
             .ToListAsync(cancellationToken);
-
-        var signedUpEvents = events
-            .Where(e => e.UsersInEvent != null && e.UsersInEvent.Contains(userId))
-            .ToList();
 
         return signedUpEvents.Select(e => new EventDto
         {
@@ -124,7 +120,6 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Image = e.Image,
             Category = e.Category.ToString(),
             UserId = e.UserId,
-            UsersInEvent = e.UsersInEvent
         });
     }
 

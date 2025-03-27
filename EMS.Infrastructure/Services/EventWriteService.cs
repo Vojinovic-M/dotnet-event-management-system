@@ -68,7 +68,7 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
         return _mapper.Map<EventDto>(eventDelete);
     }
 
-    
+
 
     public async Task<SignUpResult> SignUpForEventAsync(int eventId, string userId, CancellationToken cancellationToken)
     {
@@ -77,15 +77,23 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
         if (eventEntity == null) return SignUpResult.EventNotFound;
 
-        eventEntity.UsersInEvent ??= [];
+        var existingRegistration = await _context.EventRegistrations
+            .FirstOrDefaultAsync(er => er.EventId == eventId && er.UserId == userId, cancellationToken);
 
-        if (eventEntity.UsersInEvent.Contains(userId)) return SignUpResult.AlreadySignedUp;
+        if (existingRegistration != null) return SignUpResult.AlreadySignedUp;
 
-        eventEntity.UsersInEvent.Add(userId);
+        var eventRegistration = new EventRegistration
+        {
+            EventId = eventId,
+            UserId = userId
+        };
+
+        await _context.EventRegistrations.AddAsync(eventRegistration, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return SignUpResult.Success;
     }
+
 
 
 

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using EMS.Infrastructure.Contexts;
-using EMS.Infrastructure.Identity;
+using EMS.Domain.Entities;
 using EMS.Infrastructure.Services;
 using EMS.Infrastructure.Mappings;
 using EMS.Application.Interfaces;

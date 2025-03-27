@@ -11,5 +11,4 @@ public class EventDto
 
     public string? Category { get; set; }
     public string? UserId { get; set; }
-    public List<string>? UsersInEvent { get; set; }
 }
