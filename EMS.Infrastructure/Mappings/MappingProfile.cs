@@ -25,6 +25,9 @@ public class MappingProfile : Profile
             .ReverseMap()
             .ForMember(dest => dest.Category,
                 opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")));
+
+        CreateMap<CreateEventDto, Event>()
+            .ForMember(dest => dest.Image, opt => opt.Ignore());
     }
 
     private static EventCategory ParseCategory(string category)

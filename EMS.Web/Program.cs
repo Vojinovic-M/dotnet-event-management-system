@@ -6,6 +6,7 @@ using EMS.Infrastructure.Mappings;
 using EMS.Application.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using EMS.Infrastructure.Seeders;
+using Microsoft.Extensions.FileProviders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,6 +73,9 @@ static async Task SeedDefaultUserRolesAsync(IServiceProvider serviceProvider)
 
 var app = builder.Build();
 
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+Directory.CreateDirectory(uploadsPath);
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -94,6 +98,14 @@ app.UseHttpsRedirection();
 app.UseCors("AllowReact");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    RequestPath = "/uploads"
+});
+
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 

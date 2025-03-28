@@ -18,12 +18,34 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
     private readonly IMapper _mapper = mapper;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-    public async Task<EventDto?> CreateEventAsync(EventCrudDto eventCrudDto, CancellationToken cancellationToken)
+
+    private async Task<string> SaveImage(IFormFile image)
+    {
+        var request = _httpContextAccessor.HttpContext.Request;
+
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+        if (!Directory.Exists(uploadsFolder))   Directory.CreateDirectory(uploadsFolder);
+
+        var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(image.FileName)}";
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+            await image.CopyToAsync(fileStream);
+
+        return $"{request.Scheme}://{request.Host}/uploads/{uniqueFileName}";
+    }
+
+
+
+    public async Task<EventDto?> CreateEventAsync(CreateEventDto createEventDto, CancellationToken cancellationToken)
     {
         var user = _httpContextAccessor.HttpContext.User;
         var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        
-        var newEvent = _mapper.Map<Event>(eventCrudDto);
+
+        var image = await SaveImage(createEventDto.Image);
+
+        var newEvent = _mapper.Map<Event>(createEventDto);
+        newEvent.Image = image;
 
         await _context.Events.AddAsync(newEvent, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);

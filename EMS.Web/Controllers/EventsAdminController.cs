@@ -12,22 +12,42 @@ namespace EMS.Web.Controllers;
 public class EventsAdminController(
     IEventWriteService eventWriteService, ILogger<EventsAdminController> logger) : ControllerBase
 {
+
     [HttpPost("create")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> CreateEvent(
-        [FromBody] EventCrudDto eventCrudDto,
+        [FromForm] CreateEventDto createEventDto,
         CancellationToken cancellationToken)
     {
         try
         {
             if (!ModelState.IsValid)  return BadRequest(ModelState);
-            
-            var createdEvent = await eventWriteService.CreateEventAsync(eventCrudDto, cancellationToken);
-            return Created($"/api/events/{createdEvent.EventId}", createdEvent );
 
-        } catch (AutoMapperMappingException ex)
+            if (createEventDto.Image == null || createEventDto.Image.Length == 0)
+                return BadRequest("Image file is required");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+            var extension = Path.GetExtension(createEventDto.Image.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Invalid file type. Allowed types: JPG, JPEG, PNG");
+
+            if (createEventDto.Image.Length > 5 * 1024 * 1024) // 5 MB
+                return BadRequest("File size exceeds 5MB limit");
+
+            var createdEvent = await eventWriteService.CreateEventAsync(createEventDto, cancellationToken);
+            return Created($"/api/events/{createdEvent?.EventId}", createdEvent );
+
+        } 
+        catch (AutoMapperMappingException ex)
         {
             logger.LogError(ex, "Invalid category value");
             return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating event");
+            return StatusCode(500, "Intenal server error");
         }
     }
 
