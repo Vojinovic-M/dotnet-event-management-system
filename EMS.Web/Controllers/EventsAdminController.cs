@@ -53,8 +53,9 @@ public class EventsAdminController(
 
 
     [HttpPut("modify/{eventId}")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> ModifyEvent(
-        [FromBody] EventCrudDto eventCrudDto,
+        [FromForm] EventCrudDto eventCrudDto,
         [FromRoute] int eventId,
         CancellationToken cancellationToken)
     {
@@ -71,6 +72,11 @@ public class EventsAdminController(
         {
             logger.LogError(ex, "Invalid category value");
             return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error modifying event");
+            return StatusCode(500, "Internal server error");
         }
     }
 

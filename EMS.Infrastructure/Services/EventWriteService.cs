@@ -50,13 +50,13 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
         await _context.Events.AddAsync(newEvent, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var eventOwnr = new EventOwner
+        var eventOwner = new EventOwner
         {
             EventId = newEvent.EventId,
             UserId = userId,
         };
 
-        await _context.EventOwners.AddAsync(eventOwnr, cancellationToken);
+        await _context.EventOwners.AddAsync(eventOwner, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<EventDto>(newEvent);
@@ -66,13 +66,20 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
     public async Task<EventDto?> ModifyEventAsync(EventCrudDto eventCrudDto, int eventId, CancellationToken cancellationToken)
     {
         var user = _httpContextAccessor.HttpContext.User;
-        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
         var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
-        if (existingEvent == null) { return null; }
 
+        if (eventCrudDto.Image != null) existingEvent.Image = await SaveImage(eventCrudDto.Image);
+
+        existingEvent.Name = eventCrudDto.Name ?? existingEvent.Name;
+        existingEvent.Date = eventCrudDto.Date;
+        existingEvent.Location = eventCrudDto.Location ?? existingEvent.Location;
+        existingEvent.Description = eventCrudDto.Description ?? existingEvent.Description;
+        existingEvent.Category = Enum.Parse<EventCategory>(eventCrudDto.Category);
+
+        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var isAdmin = user.IsInRole("Admin");
         var isOwner = await _context.EventOwners.AnyAsync(eo => eo.EventId == eventId && eo.UserId == userId, cancellationToken);
+
         if (!isOwner && !isAdmin) { return null; }
 
         _mapper.Map(eventCrudDto, existingEvent);

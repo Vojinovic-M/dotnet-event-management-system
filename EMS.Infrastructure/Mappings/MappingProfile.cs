@@ -23,12 +23,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Category,
                 opt => opt.MapFrom(src => src.Category.ToString()))
             .ReverseMap()
-            .ForMember(dest => dest.Category,
-                opt => opt.MapFrom(src => ParseCategory(src.Category ?? "Meeting")));
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => !string.IsNullOrEmpty(src.Category) ? ParseCategory(src.Category) : EventCategory.Meeting));
 
         CreateMap<CreateEventDto, Event>()
             .ForMember(dest => dest.Image, opt => opt.Ignore());
     }
+
 
     private static EventCategory ParseCategory(string category)
     {
