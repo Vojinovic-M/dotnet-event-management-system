@@ -4,6 +4,7 @@ using EMS.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EMS.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250331142516_AddAverageRatingAndNumberOfReviews")]
+    partial class AddAverageRatingAndNumberOfReviews
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,9 +97,6 @@ namespace EMS.Web.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EventId"));
 
-                    b.Property<double>("AverageRating")
-                        .HasColumnType("double");
-
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -121,9 +121,6 @@ namespace EMS.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
-
-                    b.Property<int>("ReviewsCount")
-                        .HasColumnType("int");
 
                     b.HasKey("EventId");
 
@@ -168,6 +165,9 @@ namespace EMS.Web.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EventReviewId"));
 
+                    b.Property<double>("AverageRating")
+                        .HasColumnType("double");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -180,6 +180,9 @@ namespace EMS.Web.Migrations
                     b.Property<string>("ReviewText")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<int>("ReviewsCount")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()

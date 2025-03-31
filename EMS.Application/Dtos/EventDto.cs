@@ -9,4 +9,6 @@ public class EventDto
     public string? Description { get; set; }
     public string? Image { get; set; }
     public string? Category { get; set; }
+    public double AverageRating { get; set; }
+    public int ReviewsCount { get; set; }
 }

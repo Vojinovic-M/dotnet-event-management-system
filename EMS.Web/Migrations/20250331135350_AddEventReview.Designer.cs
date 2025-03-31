@@ -4,6 +4,7 @@ using EMS.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EMS.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250331135350_AddEventReview")]
+    partial class AddEventReview
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,9 +97,6 @@ namespace EMS.Web.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EventId"));
 
-                    b.Property<double>("AverageRating")
-                        .HasColumnType("double");
-
                     b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -121,9 +121,6 @@ namespace EMS.Web.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
-
-                    b.Property<int>("ReviewsCount")
-                        .HasColumnType("int");
 
                     b.HasKey("EventId");
 
@@ -158,40 +155,6 @@ namespace EMS.Web.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("EventRegistrations");
-                });
-
-            modelBuilder.Entity("EMS.Domain.Entities.EventReview", b =>
-                {
-                    b.Property<int>("EventReviewId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("EventReviewId"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("EventId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RatingStars")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ReviewText")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("EventReviewId");
-
-                    b.HasIndex("EventId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("EventReviews");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -364,25 +327,6 @@ namespace EMS.Web.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("EMS.Domain.Entities.EventReview", b =>
-                {
-                    b.HasOne("EMS.Domain.Entities.Event", "Event")
-                        .WithMany("EventReviews")
-                        .HasForeignKey("EventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EMS.Domain.Entities.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Event");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -446,8 +390,6 @@ namespace EMS.Web.Migrations
                     b.Navigation("EventOwners");
 
                     b.Navigation("EventRegistrations");
-
-                    b.Navigation("EventReviews");
                 });
 #pragma warning restore 612, 618
         }

@@ -3,7 +3,6 @@ using EMS.Application.Dtos;
 using EMS.Infrastructure.Contexts;
 using Microsoft.EntityFrameworkCore;
 using EMS.Domain.Enums;
-using AutoMapper;
 
 namespace EMS.Infrastructure.Services;
 
@@ -125,4 +124,35 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         });
     }
 
+    public async Task<PaginatedList<EventDto>> GetEventsWithReviewsAsync(EventPaginationRequest request, CancellationToken cancellationToken)
+    {
+        var query = _context.Events.AsQueryable();
+
+        var events = await query
+            .Include(e => e.EventReviews) // Eager load reviews
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var eventDtos = events.Select(e => new EventDto
+        {
+            EventId = e.EventId,
+            Name = e.Name,
+            Date = e.Date,
+            Location = e.Location,
+            Description = e.Description,
+            Image = e.Image,
+            Category = e.Category.ToString(),
+            AverageRating = e.EventReviews.Any() ? e.EventReviews.Average(er => er.RatingStars) : 0, // Calculate average rating
+            ReviewsCount = e.EventReviews.Count
+        }).ToList();
+
+        return new PaginatedList<EventDto>
+        {
+            Items = eventDtos,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
+            TotalCount = events.Count
+        };
+    }
 }

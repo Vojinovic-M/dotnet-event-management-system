@@ -14,7 +14,11 @@ namespace EMS.Domain.Entities
         public EventCategory Category { get; set; }
         public  string? Description { get; set; }
         public string? Image { get; set; }
+        public double AverageRating { get; set; }
+        public int ReviewsCount { get; set; }
+
         public ICollection<EventOwner>? EventOwners { get; set; }
         public ICollection<EventRegistration>? EventRegistrations { get; set; }
+        public ICollection<EventReview> EventReviews { get; set; }
     }
 }

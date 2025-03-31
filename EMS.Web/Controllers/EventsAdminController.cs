@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using EMS.Application.Dtos;
 using EMS.Application.Interfaces;
+using EMS.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EMS.Web.Controllers;
 
@@ -98,5 +100,15 @@ public class EventsAdminController(
             logger.LogError(ex, "Error deleting event");
             return StatusCode(500, "Internal Server error");
         }
+    }
+
+    [HttpPost("{eventId}/reviews")]
+    public async Task<IActionResult> AddReview([FromBody] ReviewRequestDto reviewRequest, CancellationToken cancellationToken)
+    {
+        var review = await eventWriteService.AddReviewAsync(reviewRequest, cancellationToken);
+    
+        if (review == null) return NotFound("Event not found");
+
+        return Ok(review);
     }
 }

@@ -11,12 +11,13 @@ using System.Security.Claims;
 
 namespace EMS.Infrastructure.Services;
 
-public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor) : IEventWriteService
+public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILogger<EventWriteService> logger) : IEventWriteService
 {
 
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly ILogger<EventWriteService> _logger = logger;
 
 
     private async Task<string> SaveImage(IFormFile image)
@@ -136,5 +137,38 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
 
 
+    public async Task<EventReview> AddReviewAsync(ReviewRequestDto reviewRequest, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var eventEntity = await _context.Events
+                .Include(e => e.EventReviews)
+                .FirstOrDefaultAsync(e => e.EventId == reviewRequest.EventId, cancellationToken);
 
+            if (eventEntity == null) return null;
+
+            var newReview = new EventReview
+            {
+                EventId = reviewRequest.EventId,
+                UserId = reviewRequest.UserId,
+                RatingStars = reviewRequest.RatingStars,
+                ReviewText = reviewRequest.ReviewText,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.EventReviews.Add(newReview);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            eventEntity.ReviewsCount = eventEntity.EventReviews.Count + 1;
+            eventEntity.AverageRating = eventEntity.EventReviews.Average(r => r.RatingStars);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return newReview;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding review");
+            throw;
+        }
+    }
 }
