@@ -13,7 +13,6 @@ public class EventCrudDto
     public string? Location { get; set; }
     [Required]
     public string? Description { get; set; }
-    [Required]
     public IFormFile? Image { get; set; }
     [Required]
     public string? Category { get; set; }

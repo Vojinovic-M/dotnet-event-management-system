@@ -27,6 +27,9 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             query = query.Where(e => e.Category == category); 
         }
 
+        if (request.UpcomingOnly) query
+                = query.Where(e => e.Date.Date >= DateTime.Today);
+
         query = request.SortBy.ToLower() switch
         {
             "name" => request.SortOrder == "asc"

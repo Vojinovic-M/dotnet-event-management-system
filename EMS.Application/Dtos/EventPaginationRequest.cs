@@ -13,5 +13,6 @@ public class EventPaginationRequest : PaginationRequest
 
     [RegularExpression("asc|desc", ErrorMessage = "Invalid sort direction")]
     public string SortOrder { get; set; } = "asc";
+    public bool UpcomingOnly { get; set; } = true;
 
 }
