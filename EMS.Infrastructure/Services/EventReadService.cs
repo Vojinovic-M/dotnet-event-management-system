@@ -83,6 +83,8 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Description = e.Description,
             Image = e.Image,
             Category = e.Category.ToString(),
+            AverageRating = e.AverageRating,
+            ReviewsCount = e.ReviewsCount
         });
     }
 
@@ -98,7 +100,9 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
                 Location = e.Location,
                 Description = e.Description,
                 Image = e.Image,
-                Category = e.Category.ToString()
+                Category = e.Category.ToString(),
+                AverageRating = e.AverageRating,
+                ReviewsCount = e.ReviewsCount
             })
             .FirstOrDefaultAsync(e => e.EventId == eventId, cancellationToken);
     }
@@ -121,6 +125,8 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Description = e.Description,
             Image = e.Image,
             Category = e.Category.ToString(),
+            AverageRating = e.AverageRating,
+            ReviewsCount = e.ReviewsCount
         });
     }
 
@@ -143,7 +149,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             Description = e.Description,
             Image = e.Image,
             Category = e.Category.ToString(),
-            AverageRating = e.EventReviews.Any() ? e.EventReviews.Average(er => er.RatingStars) : 0, // Calculate average rating
+            AverageRating = e.EventReviews.Count != 0 ? e.EventReviews.Average(er => er.RatingStars) : 0, // Calculate average rating
             ReviewsCount = e.EventReviews.Count
         }).ToList();
 
@@ -154,5 +160,24 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
             PageSize = request.PageSize,
             TotalCount = events.Count
         };
+    }
+
+
+    public async Task<IEnumerable<ReviewDto>> GetReviewsAsync(int eventId, CancellationToken cancellationToken)
+    {
+        var reviews = await _context.EventReviews
+            .Where(r => r.EventId == eventId)
+            .ToListAsync(cancellationToken);
+
+        var reviewDtos = reviews.Select(r => new ReviewDto
+        {
+            EventReviewId = r.EventReviewId,
+            EventId = r.EventId,
+            UserId = r.UserId,
+            RatingStars = r.RatingStars,
+            ReviewText = r.ReviewText
+        });
+
+        return reviewDtos;
     }
 }
