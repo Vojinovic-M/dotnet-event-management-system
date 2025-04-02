@@ -10,6 +10,6 @@ public interface IEventWriteService
     Task<EventDto?> ModifyEventAsync(EventCrudDto eventCrudDto, int EventId, CancellationToken cancellationToken);
     Task<EventDto?> DeleteEventAsync(int EventId, CancellationToken cancellationToken);
     Task<SignUpResult> SignUpForEventAsync(int eventId, string userId, CancellationToken cancellationToken);
-    Task<EventReview?> AddReviewAsync(ReviewRequestDto reviewRequest, CancellationToken cancellationToken);
+    Task<ReviewDto?> AddReviewAsync(ReviewDto reviewDto, CancellationToken cancellationToken);
 
 }

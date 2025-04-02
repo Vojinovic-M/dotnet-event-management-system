@@ -46,16 +46,16 @@ public class EventsAdminController(
     }
 
     [HttpPost("{eventId}/reviews")]
-    public async Task<IActionResult> AddReview([FromBody] ReviewRequestDto reviewRequest, CancellationToken cancellationToken)
+    public async Task<IActionResult> AddReview([FromBody] ReviewDto reviewRequest, CancellationToken cancellationToken)
     {
         var review = await eventWriteService.AddReviewAsync(reviewRequest, cancellationToken);
         return Ok(review);
     }
 
     [HttpGet("reviews/{eventId}")]
-    public async Task<IActionResult> GetReviews([FromRoute] int eventId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetUserReviews([FromRoute] int eventId, [FromQuery] string userId, CancellationToken cancellationToken)
     {
-        var reviews = await eventReadService.GetReviewsAsync(eventId, cancellationToken);
+        var reviews = await eventReadService.GetUserReviewsAsync(eventId, userId, cancellationToken);
         return Ok(reviews);
     }
 }

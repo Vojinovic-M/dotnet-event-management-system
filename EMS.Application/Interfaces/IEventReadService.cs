@@ -8,5 +8,5 @@ public interface IEventReadService
     Task<EventDto?> GetEventByIdAsync(int EventId, CancellationToken cancellationToken);
     Task<IEnumerable<EventDto>> GetUserEventsAsync(string userId, CancellationToken cancellationToken);
     Task<IEnumerable<EventDto>> GetSignedUpEventsAsync(string userId, CancellationToken cancellationToken);
-    Task<IEnumerable<ReviewDto>> GetReviewsAsync(int eventId, CancellationToken cancellationToken);
+    Task<ReviewDto> GetUserReviewsAsync(int eventId, string userId, CancellationToken cancellationToken);
 }

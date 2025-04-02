@@ -29,6 +29,8 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         if (request.UpcomingOnly) query
                 = query.Where(e => e.Date.Date >= DateTime.Today);
 
+        var totalCount = await query.CountAsync(cancellationToken);
+
         query = request.SortBy.ToLower() switch
         {
             "name" => request.SortOrder == "asc"
@@ -40,7 +42,6 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
         };
 
         // paginacija
-        var totalCount = await query.CountAsync(cancellationToken);
         var items = await query
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -164,21 +165,37 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
     }
 
 
-    public async Task<IEnumerable<ReviewDto>> GetReviewsAsync(int eventId, CancellationToken cancellationToken)
+    //public async Task<IEnumerable<ReviewDto>> GetReviewsAsync(int eventId, CancellationToken cancellationToken)
+    //{
+    //    var reviews = await _context.EventReviews
+    //        .Where(r => r.EventId == eventId)
+    //        .ToListAsync(cancellationToken);
+
+    //    var reviewDtos = reviews.Select(r => new ReviewDto
+    //    {
+    //        EventReviewId = r.EventReviewId,
+    //        EventId = r.EventId,
+    //        UserId = r.UserId,
+    //        RatingStars = r.RatingStars,
+    //        ReviewText = r.ReviewText
+    //    });
+
+    //    return reviewDtos;
+    //}
+
+    public async Task<ReviewDto?> GetUserReviewsAsync(int eventId, string userId, CancellationToken cancellationToken)
     {
-        var reviews = await _context.EventReviews
-            .Where(r => r.EventId == eventId)
-            .ToListAsync(cancellationToken);
+        return await _context.EventReviews
+            .Where(r => r.EventId == eventId && r.UserId == userId)
+            .Select(r => new ReviewDto
+            {
+                EventReviewId = r.EventReviewId,
+                EventId = r.EventId,
+                UserId = r.UserId,
+                RatingStars = r.RatingStars,
+                ReviewText = r.ReviewText
+            })
+        .FirstOrDefaultAsync(cancellationToken);
 
-        var reviewDtos = reviews.Select(r => new ReviewDto
-        {
-            EventReviewId = r.EventReviewId,
-            EventId = r.EventId,
-            UserId = r.UserId,
-            RatingStars = r.RatingStars,
-            ReviewText = r.ReviewText
-        });
-
-        return reviewDtos;
     }
 }

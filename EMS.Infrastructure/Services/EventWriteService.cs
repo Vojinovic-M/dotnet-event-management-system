@@ -139,23 +139,23 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
 
 
-    public async Task<EventReview> AddReviewAsync(ReviewRequestDto reviewRequest, CancellationToken cancellationToken)
+    public async Task<ReviewDto?> AddReviewAsync(ReviewDto reviewDto, CancellationToken cancellationToken)
     {
 
-        if (reviewRequest == null)
-            throw new ArgumentNullException(nameof(reviewRequest));
+        if (reviewDto == null)
+            throw new ArgumentNullException(nameof(reviewDto));
 
         var eventEntity = await _context.Events
             .Include(e => e.EventReviews)
-            .FirstOrDefaultAsync(e => e.EventId == reviewRequest.EventId, cancellationToken);
+            .FirstOrDefaultAsync(e => e.EventId == reviewDto.EventId, cancellationToken);
 
         if (eventEntity == null)
-            throw new KeyNotFoundException($"Event with ID {reviewRequest.EventId} not found");
+            throw new KeyNotFoundException($"Event with ID {reviewDto.EventId} not found");
 
         var existingReview = await _context.EventReviews
             .FirstOrDefaultAsync(r =>
-                r.EventId == reviewRequest.EventId &&
-                r.UserId == reviewRequest.UserId,
+                r.EventId == reviewDto.EventId &&
+                r.UserId == reviewDto.UserId,
                 cancellationToken );
 
         if (existingReview != null)
@@ -163,10 +163,11 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
         var newReview = new EventReview
         {
-            EventId = reviewRequest.EventId,
-            UserId = reviewRequest.UserId,
-            RatingStars = reviewRequest.RatingStars,
-            ReviewText = reviewRequest.ReviewText,
+            EventReviewId = reviewDto.EventReviewId,
+            EventId = reviewDto.EventId,
+            UserId = reviewDto.UserId,
+            RatingStars = reviewDto.RatingStars,
+            ReviewText = reviewDto.ReviewText,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -175,9 +176,17 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
             await _context.EventReviews.AddAsync(newReview, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            await UpdateEventReviewStats(reviewRequest.EventId, cancellationToken);
+            await UpdateEventReviewStats(reviewDto.EventId, cancellationToken);
 
-            return newReview;
+            return new ReviewDto
+            {
+                EventReviewId = newReview.EventReviewId,
+                EventId = newReview.EventId,
+                UserId = newReview.UserId,
+                RatingStars = newReview.RatingStars,
+                ReviewText = newReview.ReviewText,
+                CreatedAt = newReview.CreatedAt
+            };
         }
         catch (Exception ex)
         {
