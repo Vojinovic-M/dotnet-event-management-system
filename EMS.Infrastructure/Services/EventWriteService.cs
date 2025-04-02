@@ -35,29 +35,31 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
         return $"{request.Scheme}://{request.Host}/uploads/{uniqueFileName}";
     }
-
+    private string? GetUserId() =>
+    _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 
     public async Task<EventDto?> CreateEventAsync(CreateEventDto createEventDto, CancellationToken cancellationToken)
     {
-        var user = _httpContextAccessor.HttpContext.User;
-        var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (createEventDto.Image == null || createEventDto.Image.Length == 0)
+            throw new ArgumentException("Image file is required");
+
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+        var extension = Path.GetExtension(createEventDto.Image.FileName).ToLowerInvariant();
+
+        if (!allowedExtensions.Contains(extension))
+            throw new ArgumentException("Invalid file type. Allowed types: JPG, JPEG, PNG");
+
+        if (createEventDto.Image.Length > 5 * 1024 * 1024) // 5 MB
+            throw new ArgumentException("File size exceeds 5MB limit");
 
         var image = await SaveImage(createEventDto.Image);
-
         var newEvent = _mapper.Map<Event>(createEventDto);
         newEvent.Image = image;
 
         await _context.Events.AddAsync(newEvent, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
-
-        var eventOwner = new EventOwner
-        {
-            EventId = newEvent.EventId,
-            UserId = userId,
-        };
-
-        await _context.EventOwners.AddAsync(eventOwner, cancellationToken);
+        await _context.EventOwners.AddAsync(new EventOwner { EventId = newEvent.EventId, UserId = GetUserId() }, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return _mapper.Map<EventDto>(newEvent);
