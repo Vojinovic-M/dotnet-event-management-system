@@ -139,36 +139,72 @@ public class EventWriteService(ApplicationDbContext context, IMapper mapper, IHt
 
     public async Task<EventReview> AddReviewAsync(ReviewRequestDto reviewRequest, CancellationToken cancellationToken)
     {
+
+        if (reviewRequest == null)
+            throw new ArgumentNullException(nameof(reviewRequest));
+
+        var eventEntity = await _context.Events
+            .Include(e => e.EventReviews)
+            .FirstOrDefaultAsync(e => e.EventId == reviewRequest.EventId, cancellationToken);
+
+        if (eventEntity == null)
+            throw new KeyNotFoundException($"Event with ID {reviewRequest.EventId} not found");
+
+        var existingReview = await _context.EventReviews
+            .FirstOrDefaultAsync(r =>
+                r.EventId == reviewRequest.EventId &&
+                r.UserId == reviewRequest.UserId,
+                cancellationToken );
+
+        if (existingReview != null)
+            throw new InvalidOperationException("User has already reviewed this event");
+
+        var newReview = new EventReview
+        {
+            EventId = reviewRequest.EventId,
+            UserId = reviewRequest.UserId,
+            RatingStars = reviewRequest.RatingStars,
+            ReviewText = reviewRequest.ReviewText,
+            CreatedAt = DateTime.UtcNow
+        };
+
         try
         {
-            var eventEntity = await _context.Events
-                .Include(e => e.EventReviews)
-                .FirstOrDefaultAsync(e => e.EventId == reviewRequest.EventId, cancellationToken);
-
-            if (eventEntity == null) return null;
-
-            var newReview = new EventReview
-            {
-                EventId = reviewRequest.EventId,
-                UserId = reviewRequest.UserId,
-                RatingStars = reviewRequest.RatingStars,
-                ReviewText = reviewRequest.ReviewText,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.EventReviews.Add(newReview);
+            await _context.EventReviews.AddAsync(newReview, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
 
-            eventEntity.ReviewsCount = eventEntity.EventReviews.Count + 1;
-            eventEntity.AverageRating = eventEntity.EventReviews.Average(r => r.RatingStars);
-            await _context.SaveChangesAsync(cancellationToken);
+            await UpdateEventReviewStats(reviewRequest.EventId, cancellationToken);
 
             return newReview;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding review");
-            throw;
+            throw new InvalidOperationException("User has already reviewed this event");
+        }
+    }
+
+    private async Task UpdateEventReviewStats(int eventId, CancellationToken cancellationToken)
+    {
+        var stats = await _context.EventReviews
+            .Where(r => r.EventId == eventId)
+            .GroupBy(r => r.EventId)
+            .Select(g => new
+            {
+                Count = g.Count(),
+                Average = g.Average(r => r.RatingStars)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (stats != null)
+        {
+            var eventEntity = await _context.Events
+                .FirstAsync(e => e.EventId == eventId, cancellationToken);
+
+            eventEntity.ReviewsCount = stats.Count;
+            eventEntity.AverageRating = stats.Average;
+
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

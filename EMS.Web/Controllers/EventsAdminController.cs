@@ -52,7 +52,7 @@ public class EventsAdminController(
             logger.LogError(ex, "Error creating event");
             return StatusCode(500, "Intenal server error");
         }
-    }
+    } // UMESTO IF VALIDACIJA: STATUSCODES.(KOD) I CUSTOM ATRIBUTI PREKO ANOTACIJA
 
 
     [HttpPut("modify/{eventId}")]
