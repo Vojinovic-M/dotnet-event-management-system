@@ -69,6 +69,7 @@ public class EventReadService(ApplicationDbContext context) : IEventReadService
 
     public async Task<IEnumerable<EventDto>> GetUserEventsAsync(string userId, CancellationToken cancellationToken)
     {
+
         var userEvents = await _context.EventOwners
             .Where(e => e.UserId == userId)
             .Select(e => e.Event)

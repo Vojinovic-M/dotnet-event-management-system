@@ -24,9 +24,6 @@ public class EventsController(IEventReadService eventReadService, IEventWriteSer
     public async Task<IActionResult> GetEventById(int eventId, CancellationToken cancellationToken)
     {
         var eventDto = await _eventReadService.GetEventByIdAsync(eventId, cancellationToken);
-
-        if (eventDto == null)  return NotFound();
-
         return Ok(eventDto);
     }
 
@@ -34,13 +31,9 @@ public class EventsController(IEventReadService eventReadService, IEventWriteSer
     [Authorize]
     public async Task<IActionResult> GetUserEvents(string userId, CancellationToken cancellationToken)
     {
-        var isUser = User.IsInRole("User");
-        var isAdmin = User.IsInRole("Admin");
-
-        if (!isAdmin && !isUser)    {  return Forbid();  }
-
-        var events = await _eventReadService.GetUserEventsAsync(userId, cancellationToken);
-        return Ok(events);
+        return User.IsInRole("User") || User.IsInRole("Admin")
+            ? Ok(await _eventReadService.GetUserEventsAsync(userId, cancellationToken))
+            : Forbid();
     }
 
 
@@ -55,7 +48,7 @@ public class EventsController(IEventReadService eventReadService, IEventWriteSer
             SignUpResult.Success => Ok(new { success = true, message = "User signed up successfully." }),
 
             SignUpResult.EventNotFound => Ok(new { success = false, message = "The event does not exist." }),
-
+            
             SignUpResult.AlreadySignedUp => Ok(new { success = false, message = "User is already signed up for the event." }),
 
             _ => StatusCode(500, new { success = false, message = "An unexpected error occurred." }) // fallback
@@ -68,7 +61,6 @@ public class EventsController(IEventReadService eventReadService, IEventWriteSer
     public async Task<IActionResult> GetSignedUpEvents(string userId, CancellationToken cancellationToken)
     {
         var events = await _eventReadService.GetSignedUpEventsAsync(userId, cancellationToken);
-        
         return Ok(events);
     }
 }
