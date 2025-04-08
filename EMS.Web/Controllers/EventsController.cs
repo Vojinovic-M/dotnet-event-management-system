@@ -1,22 +1,66 @@
-﻿using EMS.Application.Interfaces;
-using EMS.Application.Features.Events.Queries.GetAllEvents;
-using MediatR;
+﻿using EMS.Application.Dtos;
+using EMS.Application.Interfaces;
+using EMS.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace EMS.Web.Controllers;
 
 [ApiController]
 [Route("api/events")]
-public class EventsController(IMediator mediator, IEventReadService eventReadService) : ControllerBase
+public class EventsController(IEventReadService eventReadService, IEventWriteService eventWriteService) : ControllerBase
 {
-    private readonly IMediator _mediator = mediator;
     private readonly IEventReadService _eventReadService = eventReadService;
-
+    private readonly IEventWriteService _eventWriteService = eventWriteService;
 
     [HttpGet]
-    public async Task<IActionResult> GetAllEvents(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetEvents([FromQuery] EventPaginationRequest request, CancellationToken cancellationToken)
     {
-        var events = await _mediator.Send(new GetAllEventsQuery(), cancellationToken);
-        return Ok(events);
+        var paginatedEvents = await _eventReadService.GetEventsAsync(request, cancellationToken);
+        return Ok(paginatedEvents);
     }
 
+
+    [HttpGet("{eventId}")]
+    public async Task<IActionResult> GetEventById(int eventId, CancellationToken cancellationToken)
+    {
+        var eventDto = await _eventReadService.GetEventByIdAsync(eventId, cancellationToken);
+        return Ok(eventDto);
+    }
+
+    [HttpGet("user/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetUserEvents(string userId, CancellationToken cancellationToken)
+    {
+        return User.IsInRole("User") || User.IsInRole("Admin")
+            ? Ok(await _eventReadService.GetUserEventsAsync(userId, cancellationToken))
+            : Forbid();
+    }
+
+
+    [HttpPost("signup/{eventId}")]
+    [Authorize]
+    public async Task<IActionResult> SignUpForEvent(int eventId, [FromBody] string userId, CancellationToken cancellationToken)
+    {
+        var result = await _eventWriteService.SignUpForEventAsync(eventId, userId, cancellationToken);
+
+        return result switch
+        {
+            SignUpResult.Success => Ok(new { success = true, message = "User signed up successfully." }),
+
+            SignUpResult.EventNotFound => Ok(new { success = false, message = "The event does not exist." }),
+            
+            SignUpResult.AlreadySignedUp => Ok(new { success = false, message = "User is already signed up for the event." }),
+
+            _ => StatusCode(500, new { success = false, message = "An unexpected error occurred." }) // fallback
+        };
+    }
+
+
+    [HttpGet("signedup/{userId}")]
+    [Authorize]
+    public async Task<IActionResult> GetSignedUpEvents(string userId, CancellationToken cancellationToken)
+    {
+        var events = await _eventReadService.GetSignedUpEventsAsync(userId, cancellationToken);
+        return Ok(events);
+    }
 }

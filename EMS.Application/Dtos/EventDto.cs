@@ -3,10 +3,12 @@
 public class EventDto
 {
     public int EventId { get; set; }
-    public required string Name { get; set; }
+    public string? Name { get; set; }
     public DateTime Date { get; set; }
-    public required string Location { get; set; }
-    public required string Description { get; set; }
-    public required string ImageUrl { get; set; }
-
+    public string? Location { get; set; }
+    public string? Description { get; set; }
+    public string? Image { get; set; }
+    public string? Category { get; set; }
+    public double AverageRating { get; set; }
+    public int ReviewsCount { get; set; }
 }

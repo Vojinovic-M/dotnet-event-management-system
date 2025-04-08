@@ -1,15 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using EMS.Infrastructure.Contexts;
-using EMS.Infrastructure.Identity;
+using EMS.Domain.Entities;
 using EMS.Infrastructure.Services;
+using EMS.Infrastructure.Mappings;
 using EMS.Application.Interfaces;
-using MediatR;
-using System.Reflection;
-using EMS.Application;
+using Microsoft.AspNetCore.Identity;
+using EMS.Infrastructure.Seeders;
+using Microsoft.Extensions.FileProviders;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetAssembly(typeof(AssemblyReference))!)); 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -20,9 +21,21 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("http://localhost:3000")
-            .AllowAnyHeader().AllowAnyMethod();
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
         });
 });
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+});
+
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -31,11 +44,44 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>()
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddScoped<IEventReadService, EventReadService>();
+builder.Services.AddScoped<IEventWriteService, EventWriteService>();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddControllers();
+
+static async Task SeedDefaultUserRolesAsync(IServiceProvider serviceProvider)
+{
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var users = userManager.Users.ToList();
+
+    foreach (var user in users)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+        if (!roles.Any())
+        {
+            await userManager.AddToRoleAsync(user, "User");
+        }
+    }
+}
+
+
+
 
 var app = builder.Build();
+
+var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
+Directory.CreateDirectory(uploadsPath);
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await AdminSeeder.EnsureRolesAndAdmin(services);
+    await SeedDefaultUserRolesAsync(services);
+}
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
@@ -50,7 +96,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowReact");
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    RequestPath = "/uploads"
+});
+
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
